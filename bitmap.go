@@ -4,45 +4,51 @@ import (
 	"errors"
 )
 
+// hardcode 8bit
+const BYTE_SIZE = 8
+
 type bitmap struct {
-	data []uint64
+	data []byte
 	size uint64
 }
 
 func NewBitmap(size uint64) *bitmap {
-	// hardcode 64bit
-	sizeArr := size / 64
-	arr := make([]uint64, sizeArr)
+	sizeArr := size / BYTE_SIZE
 	if size%64 != 0 {
-		arr = append(arr, 0)
+		sizeArr++
 	}
+	arr := make([]byte, sizeArr)
 	return &bitmap{size: size, data: arr}
 }
 
-func (b *bitmap) Set(val bool, position uint8) error {
-	if position < 0 || position >= 64 {
-		return errors.New("position only available in range [0, 64)")
+func (b *bitmap) Set(position uint64, val bool) error {
+	if position >= b.size {
+		return errors.New("invalid index, out of range")
 	}
+	arrOffset := position / BYTE_SIZE
+
 	if val {
-		b.data |= uint64(1 << position)
+		b.data[arrOffset] |= byte(1 << (position % BYTE_SIZE))
 	} else {
-		b.data &= uint64(^(1 << position))
+		b.data[arrOffset] &= byte(^(1 << (position % BYTE_SIZE)))
 	}
 	return nil
 }
 
-func (b *bitmap) Get(position uint8) (bool, error) {
-	if position < 0 || position >= 64 {
-		return false, errors.New("position only available in range [0, 64)")
+func (b *bitmap) Get(position uint64) (bool, error) {
+	if position >= b.size {
+		return false, errors.New("invalid index, out of range")
 	}
-
-	return b.data&(1<<position) > 0, nil
+	arrOffset := position / BYTE_SIZE
+	return b.data[arrOffset]&(1<<(position%BYTE_SIZE)) > 0, nil
 }
 
-func (b *bitmap) ClearBit(position uint8) (bool, error) {
-
+func (b *bitmap) ClearBit(position uint64) error {
+	return b.Set(position, false)
 }
 
 func (b *bitmap) Clear() {
-	b.data = 0
+	for i := range b.data {
+		b.data[i] = 0
+	}
 }

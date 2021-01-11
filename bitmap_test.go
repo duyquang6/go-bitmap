@@ -4,76 +4,21 @@ import (
 	"testing"
 )
 
-func TestBitmap_Set(t *testing.T) {
-	type fields struct {
-		data uint64
-	}
-	type args struct {
-		val      bool
-		position uint8
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-		want    uint64
-	}{
-		{
-			args: args{
-				val:      true,
-				position: 0,
-			},
-			fields: fields{
-				data: 0,
-			},
-			wantErr: false,
-			want:    1,
-		},
-		{
-			args: args{
-				val:      true,
-				position: 2,
-			},
-			fields: fields{
-				data: 0,
-			},
-			wantErr: false,
-			want:    4,
-		},
-		{
-			args: args{
-				val:      true,
-				position: 64,
-			},
-			fields: fields{
-				data: 0,
-			},
-			wantErr: true,
-			want:    4,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := &bitmap{
-				data: tt.fields.data,
-			}
-			if err := b.Set(tt.args.val, tt.args.position); (err != nil) != tt.wantErr {
-				t.Errorf("Bitmap.Set() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !tt.wantErr && b.data != tt.want {
-				t.Errorf("Bitmap.Set() value = %v, want value %v", tt.fields.data, tt.want)
-			}
-		})
-	}
-}
+func Test_bitmap_Get(t *testing.T) {
+	_bitmapTC1 := NewBitmap(100)
+	_bitmapTC1.data[0] = 1
 
-func TestBitmap_Get(t *testing.T) {
+	_bitmapTC2 := NewBitmap(100)
+	_bitmapTC2.data[0] = 2
+
+	_bitmapTC3 := NewBitmap(100)
+	_bitmapTC3.data[1] = 2
+
 	type fields struct {
-		data uint64
+		bitmap *bitmap
 	}
 	type args struct {
-		position uint8
+		position uint64
 	}
 	tests := []struct {
 		name    string
@@ -83,38 +28,104 @@ func TestBitmap_Get(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			args: args{
-				position: 2,
-			},
 			fields: fields{
-				data: 4,
+				bitmap: _bitmapTC1,
+			},
+			args: args{
+				position: 0,
 			},
 			want:    true,
 			wantErr: false,
 		},
 		{
+			fields: fields{
+				bitmap: _bitmapTC2,
+			},
 			args: args{
 				position: 1,
 			},
+			want:    true,
+			wantErr: false,
+		},
+		{
 			fields: fields{
-				data: 4,
+				bitmap: _bitmapTC3,
 			},
-			want:    false,
+			args: args{
+				position: 9,
+			},
+			want:    true,
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &bitmap{
-				data: tt.fields.data,
-			}
-			got, err := b.Get(tt.args.position)
+			got, err := tt.fields.bitmap.Get(tt.args.position)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bitmap.Get() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("bitmap.Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("Bitmap.Get() = %v, want %v", got, tt.want)
+				t.Errorf("bitmap.Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_bitmap_Set(t *testing.T) {
+	type fields struct {
+		bitmap *bitmap
+	}
+	type args struct {
+		val      bool
+		position uint64
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			fields: fields{
+				bitmap: NewBitmap(100),
+			},
+			args: args{
+				val:      true,
+				position: 1,
+			},
+			wantErr: false,
+		},
+		{
+			fields: fields{
+				bitmap: NewBitmap(100),
+			},
+			args: args{
+				val:      false,
+				position: 1,
+			},
+			wantErr: false,
+		},
+		{
+			fields: fields{
+				bitmap: NewBitmap(100),
+			},
+			args: args{
+				val:      true,
+				position: 10,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.fields.bitmap.Set(tt.args.position, tt.args.val); (err != nil) != tt.wantErr {
+				t.Errorf("bitmap.Set() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			val, err := tt.fields.bitmap.Get(tt.args.position)
+			if !tt.wantErr && err == nil && val != tt.args.val {
+				t.Errorf("bitmap.Set() value = %v, want %v", val, tt.args.val)
 			}
 		})
 	}
