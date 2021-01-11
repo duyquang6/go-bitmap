@@ -15,7 +15,7 @@ func Test_bitmap_Get(t *testing.T) {
 	_bitmapTC3.data[1] = 2
 
 	type fields struct {
-		bitmap *bitmap
+		bitmap *Bitmap
 	}
 	type args struct {
 		position uint64
@@ -74,7 +74,7 @@ func Test_bitmap_Get(t *testing.T) {
 
 func Test_bitmap_Set(t *testing.T) {
 	type fields struct {
-		bitmap *bitmap
+		bitmap *Bitmap
 	}
 	type args struct {
 		val      bool

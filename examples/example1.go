@@ -1,6 +1,8 @@
 package main
 
-import "bitmap"
+import (
+	"github.com/duyquang6/go-bitmap"
+)
 
 const (
 	canCall = iota
